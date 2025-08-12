@@ -1,3 +1,502 @@
+---------------------------------------------------------------------------------------------------------------------------------------
+Labels, Selectors and Annotations
+
+Labels: It is key-value pair attached to kubernetes objects such as pods, nodes and controllers. It is used to organise objects by identitying similar attributes and added at the time of object creation. It can be added/modified later in objects lifecycle.
+
+Selectors: It's core grouping mechanism in Kubernetes. User/applications can pick a group of objects by their labels using selectors.
+multiple labels can be used with secectors using a comma separator, whcich acts as a logical AND (&&) operator.
+                                   Or
+A selector is used to identify a set of resources (like Pods) by matching labels. It's a core concept that helps controllers (e.g., Deployment, ReplicaSet, Service) manage and interact with specific groups of Pods.
+
+There are two type of selectors.
+1) Equality based selector 
+2) Set-based selector 
+
+1) Equality-based Selector: 
+They allow you to select resources based on exact matches of key-value pairs.
+✅ Supported Operators:
+= (equal to)
+== (equal to)
+!= (not equal to)
+
+2) Set-based selector:
+These allow more complex filtering using sets of values.
+✅ Supported Operators:
+In
+NotIn
+Exists (key exists, value doesn't matter)
+DoesNotExist
+
+Annotations: Annotations in Kubernetes are key-value pairs attached to objects (like Pods, Deployments, Services, etc.), similar to labels, but used for storing non-identifying metadata.
+🔸 Unlike labels (which are used for selection and grouping), annotations are not used to select or group resources.
+They are purely for storing informational data or configuration that doesn't affect the operation of the object directly.
+
+🏢 Real-Life Analogy: Office Employees in a Company
+Imagine you're managing employees in a large office.
+You want to group, filter, and keep extra notes about them.
+
+🏷️ Labels → Employee ID Tags
+Each employee wears a badge (ID card) with:
+Department: Engineering
+Role: Backend
+Location: Bangalore
+These are labels.
+
+📌 You use these for grouping:
+"Show me all employees in the Engineering department, working in Bangalore."
+🔍 Selectors → HR Filters
+HR wants to filter employees for a training program.
+They say:
+“Select all employees where Role = Backend and Location = Bangalore.”
+That’s a selector — a rule used to pick the right people based on their badges (labels).
+
+📝 Annotations → Sticky Notes on Employee Desk
+Now, let’s say you want to record extra details:
+PerformanceReviewDate: "2025-07-30"
+EmergencyContact: "9876543210"
+LaptopSerialNumber: "Dell-12345"
+
+These aren’t visible on the ID badge, and not used for grouping,
+but they’re important notes for HR, Admin, or IT.
+That’s exactly what annotations are — extra metadata for tools or humans.
+
+💡 Summary Table:
+Concept	Real-Life Analogy	Purpose
+Label	Badge info (department, role)	For identifying and grouping people
+Selector	HR filter rule (e.g., select all engineers)	To find specific people using label info
+Annotation	Sticky note on desk (extra notes)	For storing extra info, not used for filter
+🎯 Visual Reminder:
+🏷️ Label = Badge
+🔍 Selector = Filter used by HR
+📝 Annotation = Sticky note on the desk
+
+Services:
+A Service is a stable way to expose and access a group of Pods, even when those Pods change (restart, reschedule, etc.).
+It connects users or other apps to your application without worrying about Pod IPs, which change frequently.
+
+🏢 Real-Life Analogy: Office Reception Desk
+Imagine a large office building (like a company HQ).
+Inside the building are employees (Pods) working in different departments.
+Now, if someone wants to meet someone from the Sales Department, they don’t go room by room asking for “someone from Sales.”
+Instead, they go to the Reception Desk.
+
+🧑‍💼 Reception Desk = Kubernetes Service
+You (the user or client) ask the reception:
+"I want to speak with someone from Sales."
+The receptionist (Service) knows exactly:
+Which Sales team members (Pods) are currently available.
+Even if someone from Sales goes out and another joins, the reception handles it.
+You don’t need to know who exactly is inside or their room numbers (IP addresses).
+
+| Real-Life       | Kubernetes                 |
+| --------------- | -------------------------- |
+| Employee        | Pod                        |
+| Reception Desk  | Service                    |
+| Department Name | Label (e.g., `app: sales`) |
+| Visitor Request | External Client Request    |
+| Room Numbers    | Pod IPs (dynamic)          |
+
+🍕 Another Quick Analogy: Food Court
+Imagine a food court in a mall:
+Multiple kitchen workers (Pods) make pizzas.
+You place an order at the pizza counter (Service).
+You don’t know which chef made your pizza — the counter routes it internally.
+
+In Kubernetes, there are 4 main types of Services, each used for different networking needs:
+
+| Service Type        | Description                                                                   | Real-Life Analogy                                                                       |
+| ------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **1. ClusterIP**    | Default type. Exposes the service **internally** within the cluster.          | Office intercom: Only employees (Pods) inside the office can talk to each other.        |
+| **2. NodePort**     | Exposes the service on a **static port on each Node's IP** (external access). | Security gate: Visitors (users) come through a fixed gate (port) to enter the building. |
+| **3. LoadBalancer** | Exposes the service using an **external cloud load balancer**.                | Front-desk at a mall with automated routing to right shops.                             |
+| **4. ExternalName** | Maps a service name to an **external DNS name**.                              | A receptionist forwarding your request to a **different company** (like `gmail.com`).   |
+
+1. ClusterIP (default)
+Internal-only access within the Kubernetes cluster.
+Used when you don’t need to expose the app outside, e.g., a backend service for frontend.
+
+2. NodePort
+Makes the app accessible from outside the cluster via <NodeIP>:<NodePort>.
+Port range: 30000–32767
+Simple way to expose a service for testing.
+
+3. LoadBalancer
+Works only in cloud environments (AWS, GCP, Azure).
+Provides a single external IP to access your app.
+Best for production with external users.
+
+4. ExternalName
+Used to map a service to an external DNS name, like example.com.
+Useful when accessing external services like a remote database or API.
+
+Easy Analogy Recap:
+| Service Type | Analogy                              | Traffic Comes From       |
+| ------------ | ------------------------------------ | ------------------------ |
+| ClusterIP    | Office intercom                      | Internal cluster only    |
+| NodePort     | Security gate with fixed port        | External via Node IP     |
+| LoadBalancer | Official building entrance           | External via public IP   |
+| ExternalName | Receptionist calling another company | External DNS redirection |
+
+Q1: What is a Kubernetes Controller?
+A Kubernetes Controller is a control loop that watches the state of cluster resources and automatically makes changes to reach the desired state defined by the user.
+
+Q2: Can you give an example?
+If I create a Deployment that asks for 3 replicas (Pods), the Deployment controller checks how many Pods are currently running. If one crashes or gets deleted, the controller will create a new one automatically to maintain 3 replicas.
+
+Q3: What is a reconciliation loop?
+It’s the internal process that keeps checking the actual state vs. desired state, and keeps “reconciling” them. It’s like an infinite loop that continuously repairs the system if it drifts away from the spec.
+
+Q4: How is a controller different from an operator?
+Controllers are built-in to Kubernetes and handle standard resources like Pods, Deployments, etc.
+Operators are custom controllers created to manage custom resources (CRDs) with application-specific logic — like for managing databases (e.g., PostgreSQL Operator).
+
+| Controller  | Watches        | Ensures What?                    |
+| ----------- | -------------- | -------------------------------- |
+| Deployment  | ReplicaSets    | Pod updates & rollout management |
+| ReplicaSet  | Pods           | Fixed number of replicas         |
+| StatefulSet | Pods + Volumes | Stable identity and ordering     |
+| DaemonSet   | Nodes          | One Pod per node                 |
+| Job         | Pods           | Completes task once successfully |
+| CronJob     | Time Schedule  | Starts Jobs on a schedule        |
+| HPA         | Metrics        | Autoscale Pods based on usage    |
+
+Types of Controllers in Kubernetes: Kubernetes has several built-in controllers, each designed to manage specific kinds of resources.
+Major Types of Kubernetes Controllers (with Easy Analogies)
+| Controller                             | Purpose                                  | Real-Life Analogy                                                           |
+| -------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------- |
+| **1. ReplicaSet**                      | Ensures a fixed number of identical Pods | 🪑 A manager ensuring there are always 5 workers at their desks             |
+| **2. Deployment**                      | Manages ReplicaSets & app updates        | 📦 A logistics supervisor: sends versioned packages & rolls them out safely |
+| **3. StatefulSet**                     | Manages stateful apps (e.g., databases)  | 🏠 Hotel with fixed room numbers: each guest (Pod) has a permanent room     |
+| **4. DaemonSet**                       | Ensures 1 Pod per Node                   | 🛡️ Security guard on every floor of a building                             |
+| **5. Job**                             | Runs a task once and exits on completion | 📃 Submitting an exam paper once: run it and you’re done                    |
+| **6. CronJob**                         | Runs Jobs on a schedule                  | ⏰ Alarm clock that triggers a task every morning                            |
+| **7. HPA (Horizontal Pod Autoscaler)** | Scales Pods up/down based on usage       | ⚖️ Automatic fan that adjusts speed based on temperature                    |
+
+1. ReplicaSet
+Goal: Always maintain a specific number of identical Pods
+Analogy: A classroom with 3 chairs — if one student leaves, a new one is seated.
+
+2. ReplicationController:
+A ReplicationController is a controller in Kubernetes that ensures a specified number of identical Pods are running at all times.
+Difference: ReplicationController vs ReplicaSet
+
+| Feature                  | **ReplicationController** | **ReplicaSet**                                          |
+| ------------------------ | ------------------------- | ------------------------------------------------------- |
+| Pod selector matching    | Only **equality-based**   | Supports **equality + set-based** (`In`, `NotIn`, etc.) |
+| Recommended usage        | ❌ Deprecated              | ✅ Preferred                                             |
+| Used by which controller | Not used by Deployments   | Used **by Deployments internally**                      |
+
+Analogy:
+🪑 ReplicationController = Old manager who can only say: "Give me exactly 3 of these specific workers."
+🪑 ReplicaSet = New manager who can say: "Give me 3 of any workers who match these flexible labels."
+
+3. Deployment
+Goal: Manage app versions, rollbacks, and rolling updates
+Analogy: Like a delivery manager rolling out software version 1.2 → 1.3 → rollback if there's a bug.
+
+4. StatefulSet
+Goal: Handle ordered, named, and stable Pods
+Analogy: Hotel rooms — guest db-0, db-1 always go back to their own rooms.
+
+5. DaemonSet
+Goal: Run one Pod on each Node (for log collection, monitoring, etc.)
+Analogy: A security guard or cleaning staff assigned to every building floor.
+
+6. Job
+Goal: Run once until success, then stop
+Analogy: Submitting a one-time task like generating a monthly report.
+
+7. CronJob
+Goal: Schedule recurring jobs
+Analogy: Your daily 6 AM alarm to run a task — like sending daily sales reports.
+
+8. Horizontal Pod Autoscaler (HPA)
+Goal: Automatically scale Pods up/down based on CPU/memory
+Analogy: A smart air conditioner that speeds up when it’s hot, slows down when it's cool.,
+
+9. TTL (Time to Live): TTL controller automatically cleans up finished resources (like Jobs) after a specified time.
+
+Why TTL needed:
+Let’s say you run 1,000 short-lived Jobs per day (e.g., image processing, reports, backups).
+Without TTL, every completed Job stays in the cluster — causing:
+Waste of memory
+Harder to manage resources
+Slower kubectl get jobs response
+With TTL, you can say:
+"Delete this Job automatically 5 minutes after it finishes
+
+TTL Controller Key Points:
+| Feature            | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| Works with         | **Job** and **CronJob Jobs**                    |
+| Field used in YAML | `ttlSecondsAfterFinished`                       |
+| What it does       | Deletes Job object after it completes + timeout |
+| Benefits           | Cleans up resources, keeps cluster tidy         |
+
+Bonus: Some More (Advanced) Controllers
+| Controller                        | Purpose                                 | Analogy                                         |
+| --------------------------------- | --------------------------------------- | ----------------------------------------------- |
+| **Vertical Pod Autoscaler (VPA)** | Adjusts **resources** (CPU/RAM) of Pods | 🍽️ Chef adjusts food portion based on appetite |
+| **Custom Controller/Operator**    | Manages custom logic and CRDs           | 🧠 AI assistant made to manage your app         |
+
+
+Summary Cheat Sheet:
+| Controller                | Key Feature                 | Analogy                            |
+| ------------------------- | --------------------------- | ---------------------------------- |
+| **ReplicationController** | Legacy Pod count controller | Old manager: keeps 3 fixed workers |
+| **ReplicaSet**            | Pod count (modern)          | Refill empty chairs                |
+| **Deployment**            | App version mgmt            | Roll out new versions              |
+| **StatefulSet**           | Stable, ordered Pods        | Fixed hotel rooms                  |
+| **DaemonSet**             | 1 Pod per node              | Guard on every floor               |
+| **Job**                   | Run once                    | Submit a task, done                |
+| **CronJob**               | Run on schedule             | Alarm clock                        |
+| **HPA**                   | Auto-scale                  | Smart fan adjusts speed            |
+| **TTL Controller**        | Auto-delete finished Jobs   | Auto-eraser after a timer          |
+
+liveness probes: The kubelet uses liveness probes to know when to restart a container.
+Readiness probes: The kubelet uses readiness probes to know when a container is ready to start accepting traffic.A Pod is considered ready when its Ready condition is true. When a Pod is not ready, it is removed from Service load balancers.
+
+Types of Probe(Liveness/Readiness):
+1) HTTPGetAction: The probe sends out an HTTP Get request to container and is considered successful if response is >=200 and <400
+2) TCPSocketAction: This type of probe initiates a TCP connection to a specified port of the container. If the connection is established, the diagnostic is deemed successful. 
+3) ExecAction: Like the name suggests, ths probe executes a command inside of the container. If the status code return 0, the diagnostic is successful.
+
+Restart Policy:
+Restart Policy in Kubernetes defines what Kubernetes should do when a container inside a Pod stops running.
+It tells Kubernetes when to restart a container and has three possible values:
+1) Always
+Restart the container no matter how it exited (success or failure).
+Default for Pods managed by a Deployment, ReplicaSet, or DaemonSet.
+Example: Web servers that must always be running.
+2) OnFailure-
+Restart the container only if it fails (non-zero exit code).
+Example: Batch jobs that should retry if something goes wrong.
+3) Never-
+Do not restart the container, no matter how it exited.
+Example: Debugging Pods or one-time scripts
+
+Real-life analogy:
+Restart policy is like your alarm clock settings:
+Always → Rings every day, no matter what happened yesterday.
+OnFailure → Rings only if you overslept yesterday.
+Never → You’re on your own; no alarm.
+
+Kubernetes Scheduler:
+The Kubernetes Scheduler is the component that decides which node in your cluster will run a newly created pod.
+It doesn’t actually run the pod — it just makes the placement decision based on:
+Resource requirements (CPU, memory)
+Node availability
+Taints/tolerations
+Node affinity/anti-affinity rules
+
+Analogy:
+Imagine you run a large hotel chain 🏨:
+Hotel rooms = Nodes in your Kubernetes cluster
+Guests = Pods you want to deploy
+Front desk receptionist = Kubernetes Scheduler
+When a guest arrives:
+The receptionist doesn’t carry the guest to the room — they decide which room is best based on availability, size, and special requests.
+They check:
+Is the room free? (Node capacity)
+Is it a smoking or non-smoking room? (Node labels & taints)
+Is it close to the pool like the guest asked? (Affinity rules)
+After deciding, the receptionist hands over the assignment to housekeeping (Kubelet) to prepare the room and move the guest in.
+
+Flow:
+[Pod Created] → [Scheduler Detects] → [Filter Nodes] → [Score Nodes] → [Select Node] → [Bind to Node] → [Kubelet Runs Pod]
+								
+								Or
+								
+Here’s a short summary of the Kubernetes Scheduler flow from your diagram:
+kubectl sends the pod request to the API Server.
+API Server stores it in etcd; the pod has no node assigned yet.
+Scheduler detects the unscheduled pod, filters and scores nodes, then picks the best one.
+API Server updates the pod’s node assignment.
+Kubelet on that node pulls the image and runs the pod via the Container Runtime.
+kube-proxy updates networking rules (IP tables) so the pod can communicate.
+In short: kubectl → API Server → Scheduler → Node’s Kubelet → Pod running with networking ready.
+kubectl → API Server → etcd → Controller Manager → Scheduler (filter + score) → API Server → Kubelet (on chosen node) → Container Runtime Engine → kube-proxy & IP tables → Pod Running
+
+Pod Priority :
+In Kubernetes, Pod Priority is a value that determines the importance of a pod compared to others, especially during scheduling and eviction.
+Key Points
+Priority is set through a PriorityClass object.
+Higher-priority pods are scheduled before lower-priority pods if resources are limited.
+During resource pressure, lower-priority pods can be evicted to make space for higher-priority ones.
+Default priority is 0 if none is set.
+
+Analogy:
+Imagine a hospital 🏥:
+Beds = Node resources (CPU, memory).
+Patients = Pods.
+Patients with critical conditions (high priority) get beds first.
+If a bed is full and a critical patient arrives, a less critical patient (low priority pod) might be moved out (evicted).
+
+PriorityClass:
+A PriorityClass in Kubernetes is an object that assigns a numerical priority value to pods.
+Higher value = more important pod.
+It influences scheduling (which pod gets resources first) and preemption (evicting lower-priority pods when resources are scarce).
+
+Analogy — Airport Check-in Counter ✈️
+Think of Kubernetes as an airport check-in system:
+Passengers = Pods.
+Check-in counters = Node resources (CPU, memory).
+Boarding pass class = PriorityClass.
+How it works:
+Passengers with First Class tickets (high priority) check in first.
+Economy class passengers (low priority) wait until higher-priority passengers are served.
+If the flight is full and a First Class passenger arrives, an Economy passenger might be offloaded (evicted) to make room.
+
+Resource limit:
+In Kubernetes, a resource limit is a configuration that specifies the maximum amount of CPU and memory a container can use.
+If a container tries to use more CPU than its limit, Kubernetes throttles it.
+If it tries to use more memory than its limit, Kubernetes may terminate (kill) the container.
+Purpose:
+Resource limits prevent any single container from consuming too many resources and impacting other workloads in the cluster.
+Analogy:
+Think of it like a speed limit for cars. No matter how powerful your engine is, you can’t go beyond the posted limit — this keeps the road safe and fair for all drivers.
+
+Resource QoS (Quality of Service) Classes:
+In Kubernetes, Resource QoS (Quality of Service) Classes are categories that determine how the kubelet prioritizes pods when resources run low on a node.
+They’re decided automatically based on the CPU & memory requests and limits you set for your containers.
+
+Three QoS Classes:
+1. Guaranteed  2. Burstable   3. BestEffort
+
+1. Guaranteed
+Condition:
+CPU request = CPU limit
+Memory request = Memory limit
+(And both are set for every container in the pod)
+Behavior:
+Highest priority when resources are scarce.
+Least likely to be evicted.
+Analogy:
+Like a VIP ticket — you get a guaranteed seat and service no matter what.
+
+2. Burstable
+Condition:
+Requests < Limits
+Or some containers have requests but not equal to limits.
+Behavior:
+Gets minimum guaranteed resources but can burst up to limits if available.
+Medium eviction priority.
+Analogy:
+Like an economy ticket with upgrade vouchers — you’re guaranteed a seat, but extra legroom only if it’s free.
+
+3. BestEffort
+Condition:
+No requests and no limits set for any container in the pod.
+Behavior:
+Lowest priority — first to be evicted when the node runs out of resources.
+Only gets leftover resources.
+Analogy:
+Like standing passengers in a crowded train — you get space only if nobody else needs it.
+
+Flow: How QoS is Used
+Pod Scheduling → Requests help decide placement (QoS class determined here).
+Runtime → Limits control max usage.
+Node under pressure → Eviction order: BestEffort → Burstable → Guaranteed.
+
+Taints and Tolerations:
+In Kubernetes, Taints and Tolerations work together to control which pods can be scheduled on which nodes — essentially a “selective access” mechanism.
+
+Taints Definition:
+A taint is applied to a node and says:
+“Only pods that can tolerate this taint are allowed here; others stay away.”
+kubectl taint nodes <node-name> key=value:effect
+Effects:
+NoSchedule → Pods without the toleration will not be scheduled here.
+PreferNoSchedule → Avoid scheduling here if possible.
+NoExecute → Evicts running pods that don’t tolerate the taint, and stops scheduling new ones.
+
+Tolerations Definition:
+A toleration is applied to a pod and says:
+“I’m okay with this taint; you can place me there.”
+
+Analogy:
+Think of a node as a VIP lounge:
+The taint is like a security guard with a list:
+“Only people with a VIP pass can enter.”
+The toleration is your VIP pass — if you have it, you’re allowed in.
+
+Flow
+Node gets tainted → gpu=true:NoSchedule
+Scheduler checks pods → Only pods with matching toleration can be placed there.
+If node is under NoExecute, non-tolerating pods get evicted.
+
+Static Pods:
+Static Pods in Kubernetes are special pods that are managed directly by the kubelet on a node, not by the Kubernetes API server or scheduler.
+Key Points
+Created and managed by:
+The kubelet process running on the node.
+No scheduler involvement:
+The pod is bound to that specific node — it will not move elsewhere.
+Definition location:
+You define them in a manifest file stored in a directory specified by the kubelet’s --pod-manifest-path flag (e.g., /etc/kubernetes/manifests/).
+Auto-recreation:
+If the pod crashes, kubelet automatically restarts it.
+Read-only in API:
+Static pods do appear in kubectl get pods, but you cannot delete them with kubectl delete — you must remove or edit the manifest file.
+
+Assiging pods to Nodes:
+Assigning Pods to Nodes in Kubernetes is the process of influencing where a pod will run within the cluster.
+By default, the Kubernetes Scheduler picks the node based on resource availability, taints/tolerations, and other constraints — but you can control the placement with specific rules.
+
+Ways to Assign Pods to Nodes:
+1️) Node Selector (Basic)  2)  Node Affinity (Advanced) 3) Pod Affinity / Anti-Affinity 4)  Taints and Tolerations 5) Custom Scheduler
+
+1️) Node Selector (Basic):Simplest way to tell Kubernetes: "Run this pod only on nodes with a specific label."
+Example:
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  nodeSelector:
+    disktype: ssd
+  containers:
+  - name: nginx
+    image: nginx
+Here, the pod will run only on a node with the label disktype=ssd.
+
+2) Node Affinity (Advanced):
+More flexible and expressive than nodeSelector.
+Types:
+requiredDuringSchedulingIgnoredDuringExecution → Hard rule (must match to schedule).
+preferredDuringSchedulingIgnoredDuringExecution → Soft rule (preferred, but not mandatory).
+Example:
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: disktype
+          operator: In
+          values:
+          - ssd
+
+3) Pod Affinity / Anti-Affinity:
+Pod Affinity → Schedule pods near (on the same node or topology) as other pods.
+Pod Anti-Affinity → Keep pods away from each other for redundancy.
+Example: Run pods in different zones to improve high availability
+
+4) Taints and Tolerations
+Taints → Mark a node to repel certain pods.
+Tolerations → Allow pods to run on tainted nodes.
+Example: Critical workloads can tolerate special “dedicated” nodes.
+
+5) Custom Scheduler
+You can run your own scheduler for highly specialized placement logic.
+
+Analogy
+Imagine Kubernetes as a hotel booking system:
+Node labels = Hotel features (e.g., “ocean view”, “king bed”).
+Node Selector / Affinity = Your booking request (“I want a room with an ocean view”).
+Pod Affinity/Anti-Affinity = You want to be close to or far from other guests.
+Taints & Tolerations = VIP rooms where only special guests can stay.
+
+-------------------------------------------------------------------------------------------------------------------------------------------
 Volumes: Volumes is defined in pod specification. It help to preserved pod data in case of container failures.
 Volume types:
 1) emptyDir
@@ -22,7 +521,7 @@ When the meeting ends (Pod is deleted), the whiteboard is wiped clean (deleted).
 This whiteboard is just like emptyDir.
 
 To prove it.
-1) emptydir-demo.yaml is create
+1) emp tydir-demo.yaml is create
 2) kubectl apply -f emptydir-demo
 3) kubectl logs emptydir-demo -c reader
 Hello from writer!
@@ -69,7 +568,10 @@ Kubernetes can mount the secret into the pod securely.
 
 ----------------------------------------------------------------------------------------------------------------------------
 PersistentVolume:
-Introduction:Managing storage is a distinct problem from managing compute instances. The PersistentVolume subsystem provides an API for users and administrators that abstracts details of how storage is provided from how it is consumed. To do this, we introduce two new API resources: PersistentVolume and PersistentVolumeClaim.
+In Kubernetes, storage is managed separately from the computing part (like Pods). The PersistentVolume feature gives a standard way to connect users to storage without them worrying about where or how it comes from.
+It works with two parts:
+PersistentVolume (PV) → The actual storage provided in the cluster.
+PersistentVolumeClaim (PVC) → A user’s request to use some of that storage.
 
 A Persistent Volume (PV) is a piece of storage in your cluster that has been provisioned by an administrator or dynamically by Kubernetes using StorageClasses.It is a resource in the cluster just like a node is a cluster resource.
 It's independent of the pod’s lifecycle.
@@ -167,3 +669,5 @@ Component						Purpose								Analogy
 PersistentVolume (PV)			Actual storage						A locker
 PersistentVolumeClaim (PVC)		Request for storage					A student requesting locker
 StorageClass					Type/template of storage			Locker type (small/large)
+
+
