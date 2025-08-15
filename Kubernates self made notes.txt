@@ -253,6 +253,82 @@ Summary Cheat Sheet:
 | **HPA**                   | Auto-scale                  | Smart fan adjusts speed            |
 | **TTL Controller**        | Auto-delete finished Jobs   | Auto-eraser after a timer          |
 
+What is Ingress in Kubernetes?
+In Kubernetes, Ingress is an API object that manages external access to services in a cluster, usually HTTP or HTTPS traffic.
+It acts as a traffic controller that decides which requests go to which service, based on rules you define (like URLs or hostnames).
+
+Why do we need Ingress?
+Without Ingress:
+To expose a service outside the cluster, you’d need to use NodePort or LoadBalancer for each service.
+This wastes IPs, ports, and makes management messy.
+With Ingress:
+You can have one entry point for all your services.
+You can route requests based on hostnames (e.g., app1.example.com, app2.example.com) or paths (/login, /shop).
+You can handle SSL/TLS termination in one place.
+
+How Ingress Works
+Ingress Resource – YAML configuration with rules for routing.
+Ingress Controller – The actual software (like Nginx Ingress Controller, Traefik, HAProxy) that implements those rules.
+Service & Pods – Backend applications that receive traffic.
+Client → Ingress Controller → Service → Pod
+
+Analogy — Ingress is like a receptionist at an office building
+Imagine:
+You have an office building (Kubernetes cluster).
+Inside, there are different departments (services: Payments, Orders, Inventory).
+Visitors (users) come to the main reception desk (Ingress Controller).
+The receptionist (Ingress rules) checks:
+Who you want to meet (hostname/path in the request)
+Which department they belong to (which service to forward the request to)
+Then directs you to the correct room (Pod).
+Without a receptionist:
+Every department would need their own door (NodePort/LoadBalancer for each service).
+Visitors would have to know exactly where to go — messy and confusing.
+With a receptionist (Ingress):
+One main door.
+Easy to redirect traffic.
+Can also handle security (SSL/TLS) at the reception desk.
+
+Key Features of Ingress
+Path-based routing: /login → one service, /shop → another.
+Host-based routing: app1.example.com vs app2.example.com.
+SSL termination: Manage HTTPS certificates centrally.
+Single entry point: One load balancer for all apps.
+
+Ingress Controller: An Ingress Controller in Kubernetes is the actual traffic manager that makes your Ingress rules work.
+Definition
+An Ingress is just a set of rules (YAML configuration) describing how external traffic should reach your services.
+But those rules do nothing on their own.
+The Ingress Controller is a special pod (or set of pods) that watches those rules and configures a real load balancer/reverse proxy (like Nginx, Traefik, HAProxy, AWS ALB, etc.) to enforce them.
+How It Works
+You write an Ingress YAML with hostnames, paths, and backend service names.
+Kubernetes stores that object in its API.
+The Ingress Controller sees the new Ingress object and:
+Translates it into proxy/load balancer configuration.
+Listens on the entry point (node ports, cloud LB, etc.).
+Routes requests to the correct service based on your rules.
+Without Ingress Controller
+Your Ingress YAML is just a piece of paper with instructions, but no one is there to follow them.
+
+Analogy
+Think of Ingress as a traffic signboard telling drivers where to go.
+The Ingress Controller is the traffic police officer who actually reads the sign and directs the cars (HTTP requests) to the right street (service).
+Without the officer, the signboard is useless — drivers wouldn’t know where to go.
+
+Popular Ingress Controllers
+Nginx Ingress Controller (most common and feature-rich)
+Traefik
+HAProxy
+Kong
+Istio Gateway (service mesh style)
+AWS ALB Ingress Controller (cloud-native)
+
+Key Points for Interviews
+Ingress = rules.
+Ingress Controller = software that enforces those rules.
+It’s deployed as a pod inside the cluster.
+You can have multiple controllers in the same cluster (but each Ingress is linked to one controller via annotations).
+
 liveness probes: The kubelet uses liveness probes to know when to restart a container.
 Readiness probes: The kubelet uses readiness probes to know when a container is ready to start accepting traffic.A Pod is considered ready when its Ready condition is true. When a Pod is not ready, it is removed from Service load balancers.
 
@@ -670,4 +746,301 @@ PersistentVolume (PV)			Actual storage						A locker
 PersistentVolumeClaim (PVC)		Request for storage					A student requesting locker
 StorageClass					Type/template of storage			Locker type (small/large)
 
+==============================================================================================================================================
 
+Securing the Cluster:
+Securing the Cluster in Kubernetes means implementing practices, configurations, and tools to protect your cluster from unauthorized access, data breaches, and malicious workloads.
+Think of your Kubernetes cluster like a city — you have gates, guards, and rules to keep it safe. Securing it means making sure only the right people and safe workloads get in, and that everything inside behaves as expected.
+
+Main Areas of Kubernetes Cluster Security
+1. API Server Security (Gatekeeper of the Cluster)
+RBAC (Role-Based Access Control) → Give users and services only the permissions they need.
+Authentication → Verify who is making the request (certificates, OIDC, service accounts).
+Authorization → Decide what they can do (Roles, ClusterRoles).
+API Auditing → Keep logs of all API calls for investigation.
+Analogy: The city hall has an entry register — only certain people can enter specific rooms.
+
+2. Network Security
+Network Policies → Control which pods/services can talk to each other.
+Restrict External Access → Avoid exposing unnecessary ports via NodePort or LoadBalancer.
+Ingress Controller Security → Use HTTPS/TLS for secure communication.
+Analogy: Security gates between neighborhoods so only approved visitors can enter.
+
+3. Pod & Container Security
+Pod Security Standards / OPA Gatekeeper → Enforce rules like “No root user”, “Read-only filesystem”.
+Image Security → Use trusted images, scan them with tools like Trivy or Anchore.
+Resource Limits → Prevent pods from consuming all CPU/memory (avoids DoS from inside).
+Analogy: Citizens can live in the city, but they must have an ID, follow laws, and not take unlimited resources.
+
+4. Node Security
+Harden OS → Disable unused ports, apply patches.
+Limit SSH Access → Only allow admin-level people to access worker/master nodes.
+Run minimal software → Reduce attack surface.
+Analogy: Guard the city gates and infrastructure from intruders.
+
+5. Secret Management
+Kubernetes Secrets → Store passwords, tokens securely (better with encryption at rest).
+External Secret Managers → AWS Secrets Manager, HashiCorp Vault.
+Avoid hardcoding credentials in configs.
+Analogy: Keep city’s master keys in a locked safe, not lying around.
+
+6. Monitoring & Auditing
+Logging → Capture application and system logs.
+Monitoring → Use Prometheus, Grafana, ELK to detect anomalies.
+Audit Logs → Track changes to cluster resources.
+Analogy: CCTV cameras and patrol logs in the city.
+
+7. Regular Updates
+Keep Kubernetes version up to date.
+Apply security patches to nodes and container images.
+
+Proccess flow: [Authentication] → [Authorization (RBAC)] → [Admission Control]
+Authentication: Verifies identity (ID check).
+Authorization: Checks permissions (Are you allowed in this room?).
+Admission Control: Applies extra rules before allowing the request.
+
+What is the Authentication in Kubernetes:
+Authentication is the first security gate — it’s all about proving who you are before you can talk to the Kubernetes API server.
+
+Analogy: Imagine you’re entering a secure office building. The guard won’t let you in until you show ID proof (badge, fingerprint, or access card). Authentication is that “ID check.”
+
+Purpose:
+Ensure that only verified entities (humans, applications, nodes) can access the cluster.
+Prevent anonymous or unauthorized access.
+
+Who Needs Authentication?
+Human users → Developers, admins, operators.
+Service accounts → Applications running inside the cluster.
+Kubelet / Nodes → Worker nodes communicating with API server.
+
+Authentication Methods
+Kubernetes supports multiple ways to prove identity:
+1) Certificates (X.509 TLS)
+Common for node-to-API server communication.
+Example: kubelet authenticates using a client certificate.
+
+2) Bearer Tokens
+Static tokens (defined in API server config).
+Service account tokens (auto-mounted in pods).
+
+3) OpenID Connect (OIDC)
+Uses external identity providers like Google, Okta, Azure AD.
+
+4) Webhook Token Authentication
+API server sends credentials to an external authentication service.
+
+5) Bootstrap Tokens
+Used when adding new nodes to the cluster.
+
+What is Authorization in Kubernetes?
+In Kubernetes security, Authorization comes after Authentication — it’s about deciding what an authenticated user (or service) is allowed to do.
+If Authentication is the building’s security guard checking your ID, Authorization is the office receptionist deciding which floors/rooms you can enter based on your access level.
+You may be allowed into the building (authenticated),
+but you might not be allowed into the server room (authorized).
+
+Purpose
+Controls permissions for every request to the Kubernetes API.
+Ensures least privilege: give only the rights needed to do the job.
+
+How Authorization Works
+When a request reaches the API Server:
+1) Authentication → Verifies who you are.
+2) Authorization → Checks what you are allowed to do.
+3) Admission Control → Applies extra policies if needed.
+
+Authorization Modes in Kubernetes
+Kubernetes supports multiple authorization modules (you can enable more than one):
+1) RBAC (Role-Based Access Control) ✅ (most common)
+Uses Roles and RoleBindings to allow actions (verbs) on resources.
+Example:
+Role: get, list, watch Pods in namespace dev.
+RoleBinding: Assigns that role to a user/service account.
+
+2) ABAC (Attribute-Based Access Control)
+Policies based on user attributes and request parameters.
+Less common now; RBAC is preferred.
+
+3) Node Authorization
+Special rules for kubelets (nodes) to access API server resources.
+
+4) Webhook Authorization
+Delegates the authorization decision to an external service.
+
+RBAC Example (Interview-Friendly)
+# Role: Read-only access to Pods
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: dev
+  name: pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+
+# Binding: Assigns the above role to user 'alice'
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods-binding
+  namespace: dev
+subjects:
+- kind: User
+  name: alice
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+
+Here:
+Alice can view pods in dev namespace,
+but she cannot create/delete them.
+
+✅ In short:
+Authorization is the permission checker of Kubernetes. Even if you’ve proven your identity, you’ll only be allowed to perform actions if your authorization rules (RBAC, ABAC, etc.) permit it.
+
+Quick Diagram (Text Version)
+[User Request]
+      |
+      v
+[Authentication] --(Fail)--> Reject: "Who are you?"
+      |
+     Pass
+      |
+      v
+[Authorization] --(Fail)--> Reject: "Not allowed to do this"
+      |
+     Pass
+      |
+      v
+[Action Executed]
+
+
+Authentication checks who you are (identity verification) — like showing your ID at the building entrance. Authorization checks what you’re allowed to do (permission control) — like deciding which floors or rooms you can enter after you’re inside.
+Role — The Permission List:
+Definition: A Role defines a set of permissions (rules) within a specific namespace.
+Purpose: Says what actions can be performed on which resources.
+Scope: Namespace-scoped (applies only to one namespace).
+
+RoleBinding — Giving the Permission to Someone:
+Definition: A RoleBinding attaches (binds) a Role to a user, group, or service account.
+Purpose: Says who can use the permissions defined in the Role.
+Scope: Also namespace-scoped.
+
+Key Points
+Role → Defines permissions (verbs + resources).
+RoleBinding → Assigns those permissions to users, groups, or service accounts.
+For cluster-wide permissions, we use ClusterRole & ClusterRoleBinding instead.
+
+User: Bind the role to a single user in cluster.
+Service account: Bind the role to a single Service account in a namespace.
+Group: Bind the role to a group of user/service accounts in the cluster.
+
+Network Policy:
+Network Policy in Kubernetes is a set of rules that define how Pods are allowed to communicate with each other and with other network endpoints.
+
+It specifies:
+Which Pods can receive traffic (Ingress rules)
+Which Pods can send traffic (Egress rules)
+Conditions for communication (based on labels, namespaces, IP blocks, and ports)
+
+Key Points:
+Works at Layer 3/4 (IP and port level).
+Requires a CNI plugin that supports network policies (e.g., Calico, Cilium).
+By default, all Pods can communicate freely — applying a network policy starts denying traffic not explicitly allowed.
+
+ Office Wi-Fi & Access List Analogy
+
+Think of your Kubernetes cluster as a big office building with multiple Wi-Fi networks (Pods).
+By default, every employee’s laptop can connect to every Wi-Fi network.
+A Network Policy is like the IT department’s Wi-Fi access list:
+They decide which laptops (Pods) can connect to which Wi-Fi networks (other Pods).
+They can also block certain laptops from accessing the internet (Egress).
+If your laptop isn’t on the approved list, you can’t connect — even if the network exists.
+It’s basically custom Wi-Fi permissions for Pod communication.
+
+Network Policy using Calico in Kubernetes:
+Network Policy using Calico in Kubernetes means using Calico (a popular Kubernetes networking and security plugin) to enforce traffic control rules between Pods, Namespaces, and external endpoints.
+
+What is a Network Policy?
+A Kubernetes NetworkPolicy is a set of rules that define which Pods can talk to which other Pods/services and on which ports/protocols.
+By default in Kubernetes:
+All Pods can talk to all other Pods (open network).
+NetworkPolicy restricts that traffic to only what’s explicitly allowed.
+
+Where Calico Comes In
+Kubernetes itself only defines the NetworkPolicy API — it doesn’t enforce it.
+Calico is one of the most widely used CNI (Container Network Interface) plugins that:
+Reads Kubernetes NetworkPolicy objects.
+Applies them at the network layer using iptables or eBPF.
+Supports both Kubernetes native policies and Calico-specific extended policies (more features like deny rules, global policies, etc.).
+
+How It Works
+You create a NetworkPolicy YAML in Kubernetes.
+Kubernetes stores it in etcd via the API server.
+Calico agents (running on every node as a DaemonSet) watch for new policies.
+Calico translates policies into low-level rules (iptables/eBPF) on the node’s network stack.
+These rules are applied at the pod’s virtual network interface — filtering traffic before it even reaches the pod.
+
+Example — Allow Only Frontend to Talk to Backend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 80
+
+Meaning: Only Pods labeled app=frontend can send TCP traffic to Pods labeled app=backend on port 80.
+
+Analogy
+Think of Calico NetworkPolicy as:
+Rules: “Only people from the Marketing department can enter the Design office, and only through the main door.”
+Kubernetes: Writes down the rules.
+Calico: Places security guards at every office door to enforce them in real-time.
+
+Why Calico is Popular
+Supports eBPF (faster packet filtering than iptables).
+More expressive policies (deny rules, global scope).
+Works for both pod-to-pod and pod-to-external communication.
+Can also handle encryption and BGP-based routing.
+
+iptables in Calico:
+What it is
+iptables is the traditional Linux firewall utility for packet filtering and network address translation (NAT).
+Calico can use iptables rules to control which packets are allowed/denied based on Kubernetes NetworkPolicies.
+How Calico uses it
+When a NetworkPolicy is applied, Calico generates iptables rules.
+These rules are inserted into the Linux networking stack to enforce security policies.
+Works well but can become slower for large clusters because iptables rules grow linearly with the number of pods/services.
+Analogy
+Think of iptables like a security guard with a big clipboard — every packet is checked against a long list of rules. If the list gets too long, the guard slows down.
+
+eBPF in Calico:
+What it is
+eBPF (Extended Berkeley Packet Filter) is a modern Linux kernel technology that lets you run custom programs inside the kernel without changing kernel code.
+It's faster, more flexible, and avoids some of the scalability issues of iptables.
+How Calico uses it
+Instead of inserting many iptables rules, Calico runs eBPF programs inside the kernel.
+This allows direct packet processing, faster policy checks, and better observability.
+Can replace kube-proxy for service handling, reducing network hops and latency.
+Analogy
+Think of eBPF like a smart AI security camera installed right at the gate — it instantly recognizes whether to allow or block someone, without flipping through a long paper list.
+
+Key Difference Table:
+| Feature            | iptables                | eBPF                                     |
+| ------------------ | ----------------------- | ---------------------------------------- |
+| **Performance**    | Slower at large scale   | High performance, even in large clusters |
+| **Policy**         | Uses static rule chains | Dynamic, programmable checks             |
+| **Kernel Feature** | Old & widely supported  | Requires modern Linux (≥4.19)            |
+| **Observability**  | Limited                 | Rich, real-time metrics                  |
