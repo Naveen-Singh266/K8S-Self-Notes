@@ -497,8 +497,8 @@ Ingress Resource – YAML configuration with rules for routing.
 Ingress Controller – The actual software (like Nginx Ingress Controller, Traefik, HAProxy) that implements those rules.
 Service & Pods – Backend applications that receive traffic.
 Client → Ingress Controller → Service → Pod
-
 Analogy — Ingress is like a receptionist at an office building
+
 Imagine:
 You have an office building (Kubernetes cluster).
 Inside, there are different departments (services: Payments, Orders, Inventory).
@@ -605,7 +605,7 @@ Is it close to the pool like the guest asked? (Affinity rules)
 After deciding, the receptionist hands over the assignment to housekeeping (Kubelet) to prepare the room and move the guest in.
 
 Flow:
-[Pod Created] → [Scheduler Detects] → [Filter Nodes] → [Score Nodes] → [Select Node] → [Bind to Node] → [Kubelet Runs Pod]
+[Pod Create request] → [Scheduler Detects] → [Filter Nodes] → [Score Nodes] → [Select Node] → [Bind to Node] → [Kubelet create Pod]
 								
 								Or
 								
@@ -815,7 +815,7 @@ Note:
 A container crashing does not remove a Pod from a node. The data in an emptyDir volume is safe across container crashes.
 
 Real-life Analogy: Temporary Whiteboard in a Meeting Room
-Imagine you and your teammates (containers) go into a meeting room (Pod). Inside, there is a whiteboard (emptyDir).
+Imagine you and your teamm]ates (containers) go into a meeting room (Pod). Inside, there is a whiteboard (emptyDir).
 The whiteboard is empty when you enter.
 All of you can write on it and read from it during the meeting.
 The content remains while the meeting is going on.
@@ -868,7 +868,7 @@ A pod may need a database password.
 Instead of hardcoding it in the image, we store it in a Secret.
 Kubernetes can mount the secret into the pod securely.
 
-----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------
 PersistentVolume:
 In Kubernetes, storage is managed separately from the computing part (like Pods). The PersistentVolume feature gives a standard way to connect users to storage without them worrying about where or how it comes from.
 It works with two parts:
@@ -972,7 +972,7 @@ PersistentVolume (PV)			Actual storage						A locker
 PersistentVolumeClaim (PVC)		Request for storage					A student requesting locker
 StorageClass					Type/template of storage			Locker type (small/large)
 
-==============================================================================================================================================
+=============================================================================================================================================
 
 Securing the Cluster:
 Securing the Cluster in Kubernetes means implementing practices, configurations, and tools to protect your cluster from unauthorized access, data breaches, and malicious workloads.
