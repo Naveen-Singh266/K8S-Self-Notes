@@ -368,104 +368,88 @@ environment.
 
 Common Ansible Interview Questions
 
-What is Ansible and why is it used? – Ansible is an open-source, agentless automation tool for IT tasks like configuration management, application deployment and orchestration. It uses human-readable YAML playbooks and connects via SSH, ensuring consistent deployments across servers
-igmguru.com
-.
+What is Ansible and why is it used? 
+Ansible is an open-source, agentless automation tool for IT tasks like configuration management, application deployment and orchestration. 
+It uses human-readable YAML playbooks and connects via SSH, ensuring consistent deployments across servers.
 
-How does Ansible connect to remote hosts? – Ansible uses SSH (or Windows WinRM) to log into target machines, so no agents are required on managed nodes
-igmguru.com
+How does Ansible connect to remote hosts?
+Ansible uses SSH (or Windows WinRM) to log into target machines, so no agents are required on managed nodes
 . This push-based model makes setup simpler than agent-based tools.
 
-What is an Ansible playbook? – A playbook is a YAML file that defines a sequence of plays (tasks) to run on selected hosts. It serves as an automation blueprint for deploying software or configuring systems
-docs.ansible.com
+What is an Ansible playbook?
+A playbook is a YAML file that defines a sequence of plays (tasks) to run on selected hosts. It serves as an automation blueprint for deploying software or configuring systems
 . Each play specifies a group of hosts, tasks (using modules), and any variables or conditions.
 
-What is an Ansible inventory file? – The inventory lists all managed hosts (by name or IP) organized into groups. It can be a static file or dynamic script. An inventory tells Ansible which machines to target for automation
-docs.ansible.com
-igmguru.com
+What is an Ansible inventory file?
+The inventory lists all managed hosts (by name or IP) organized into groups. It can be a static file or dynamic script. 
+An inventory tells Ansible which machines to target for automation
 . (For example, an AWS inventory plugin can auto-populate host lists from cloud instances.)
 
-What is the difference between static and dynamic inventory? – A static inventory is a manually maintained file (INI or YAML) of hosts/groups. A dynamic inventory is a script or plugin that queries cloud APIs (AWS, Azure, etc.) or CMDBs to produce the host list on the fly. Dynamic inventories automatically update as infrastructure changes
-igmguru.com
-.
+What is the difference between static and dynamic inventory?
+A static inventory is a manually maintained file (INI or YAML) of hosts/groups. A dynamic inventory is a script or plugin that queries cloud APIs (AWS, Azure, etc.) or CMDBs to produce the host list on the fly. Dynamic inventories automatically update as infrastructure changes
 
-What are Ansible modules? – Modules are reusable units of code that perform specific tasks (like installing packages, managing files, or querying cloud resources). Ansible provides hundreds of built-in modules (e.g. apt, copy, service, ec2, azure_rm) which are idempotent by design
-docs.ansible.com
+What are Ansible modules?
+Modules are reusable units of code that perform specific tasks (like installing packages, managing files, or querying cloud resources).
+Ansible provides hundreds of built-in modules (e.g. apt, copy, service, ec2, azure_rm) which are idempotent by design
 . You can also write custom modules if needed.
 
-What are Ansible roles, and how do they differ from playbooks? – Roles are a way to package automation content (tasks, handlers, files, templates, variables) into a standard directory structure for reuse. Whereas a playbook is a sequence of tasks, a role is a container for related tasks and supporting files. Roles (e.g. roles/nginx/tasks/main.yml, roles/nginx/templates/nginx.conf.j2, etc.) let you organize and share complex configurations across projects
-docs.ansible.com
-.
+What are Ansible roles, and how do they differ from playbooks
+Roles are a way to package automation content (tasks, handlers, files, templates, variables) into a standard directory structure for reuse. 
+Whereas a playbook is a sequence of tasks, a role is a container for related tasks and supporting files. Roles (e.g. roles/nginx/tasks/main.yml, roles/nginx/templates/nginx.conf.j2, etc.) let you organize and share complex configurations across projects
 
-What is ansible.cfg and when do you use it? – ansible.cfg is the configuration file for Ansible. It lets you set defaults like inventory file location, connection options (e.g. SSH keys, timeouts), logging paths, or remote user settings. For example, you can enable SSH pipelining, set host_key_checking = False, or define retry_files_enabled = False in ansible.cfg
-medium.com
+What is ansible.cfg and when do you use it
+ansible.cfg is the configuration file for Ansible. It lets you set defaults like inventory file location, connection options (e.g. SSH keys, timeouts), 
+logging paths, or remote user settings. For example, you can enable SSH pipelining, set host_key_checking = False, or define retry_files_enabled = False in ansible.cfg
 . This centralizes environment settings and avoids typing them on the command line.
 
-What are handlers in Ansible? – A handler is a special kind of task that runs only when notified by another task. Handlers are typically used for operations that should happen once after changes, such as “restart nginx” after its config is modified. For example, a task that changes a template can notify: Restart service, and the Restart service handler will run at the end of the play if any notifying task reported a change. This ensures services are only restarted if needed
-docs.ansible.com
-.
+What are handlers in Ansible
+A handler is a special kind of task that runs only when notified by another task. Handlers are typically used for operations that should happen once after changes, 
+such as “restart nginx” after its config is modified. For example, a task that changes a template can notify: Restart service,
+and the Restart service handler will run at the end of the play if any notifying task reported a change. This ensures services are only restarted if needed
 
-How is Jinja2 templating used in Ansible? – Ansible uses the Jinja2 templating language to insert dynamic values (variables, facts) into files or even playbook text. You can create .j2 templates for configuration files (e.g. web server configs) and use the template: module to render them per-host. Jinja2 allows expressions, filters, and loops. For example, a template might use {{ ansible_facts['hostname'] }} or environment-specific variables to customize each node’s config
-docs.ansible.com
+How is Jinja2 templating used in Ansible
+Ansible uses the Jinja2 templating language to insert dynamic values (variables, facts) into files or even playbook text. You can create .j2 templates for configuration files (e.g. web server configs) and use the template: module to render them per-host. Jinja2 allows expressions, filters, and loops. For example, a template might use {{ ansible_facts['hostname'] }} or environment-specific variables to customize each node’s config
 . All templating happens on the control node before tasks run.
 
-What is idempotency in Ansible? – Idempotency means running the same task multiple times has the same effect as running it once (no unintended extra changes). Ansible achieves this by having most modules check the current state before making changes. For example, the apt: or service: module will only install or restart if needed. This guarantees that playbooks are safe to re-run repeatedly, ensuring consistent system state
-spacelift.io
-.
-
+What is idempotency in Ansible
+Idempotency means running the same task multiple times has the same effect as running it once (no unintended extra changes). Ansible achieves this by having most modules check the current state before making changes. For example, the apt: or service: module will only install or restart if needed. This guarantees that playbooks are safe to re-run repeatedly, ensuring consistent system state
 Key Ansible Concepts and Components
 Playbooks
-
 Playbooks are YAML files that define plays—collections of tasks—to execute on managed hosts. Each play specifies the target hosts (via inventory groups), any privilege escalation (e.g. become: yes), and a list of tasks (invoking modules)
-docs.ansible.com
 . Playbooks enable repeatable automation: you write out the desired state of your systems in code and Ansible applies it in order. Playbooks can include multiple plays (e.g. one for webservers, another for database servers) and support features like loops, conditionals, and tags for fine control.
 
 Inventory and Host Groups
-
-The inventory is essentially a “host list” that tells Ansible which machines to manage. It can be a static file (/etc/ansible/hosts) or dynamically generated. Inventories group hosts by roles (e.g. [webservers], [dbservers]) and can assign variables per host or group. Ansible builds an inventory of managed nodes and can target them by name or group pattern
-docs.ansible.com
+The inventory is essentially a “host list” that tells Ansible which machines to manage. It can be a static file (/etc/ansible/hosts) or dynamically generated.
+Inventories group hosts by roles (e.g. [webservers], [dbservers]) and can assign variables per host or group.
+Ansible builds an inventory of managed nodes and can target them by name or group pattern
 . Dynamic inventories (via plugins) query cloud APIs (AWS, Azure, GCP, etc.) to find active instances. This makes Ansible automatically adapt to changing infrastructure without manual host updates.
 
 Modules
-
 Modules are the workhorses of Ansible: standalone scripts that perform operations on the target machines. There are modules for package management (yum, apt), file operations (copy, template), service control, user management, cloud APIs (ec2, azure_rm, gcp_compute), network configuration, and much more. Ansible includes these modules in a library, and you invoke them in playbooks. Because modules are idempotent, they first check the current state and only make changes if needed
-docs.ansible.com
 . You can also write custom modules in Python (or other languages) for bespoke tasks, placing them in a library/ directory.
 
 Roles
-
 Roles provide a way to organize playbooks into reusable components. A role has a defined directory structure (e.g. tasks/, handlers/, templates/, files/, vars/, defaults/, meta/)
-docs.ansible.com
 . Each directory has a specific purpose (e.g. tasks/main.yml, handlers/main.yml, templates/). Roles let you bundle all the automation for a component (like “nginx” or “database”) into one folder. You can then include roles in playbooks using the roles: directive, which automatically loads the tasks and files from that role
 docs.ansible.com
 . This modularity greatly simplifies managing complex setups and sharing code (even via Ansible Galaxy).
 
 Configuration File (ansible.cfg)
-
 Ansible’s behavior can be customized via the ansible.cfg file. This config file (in /etc/ansible/, ~/.ansible.cfg, or the current directory) lets you set defaults such as the path to your inventory, whether to check host keys, remote user defaults, parallelism (“forks”), privilege escalation behavior, etc
-medium.com
 . For example, you might set host_key_checking = False to skip SSH host key prompts, or pipelining = True to speed up SSH tasks. By using ansible.cfg, teams ensure consistent settings across all runs without typing extra command-line flags.
 
 Handlers
-
 Handlers are special tasks that run only when triggered by other tasks. In a playbook, you define a handler (under handlers:) just like a normal task, but you give it a name (e.g. “Restart Apache”). Other tasks can then include notify: Restart Apache. When a notifying task reports a change (e.g. a config file was updated), Ansible queues the handler to run once, at the end of the play. This pattern is typically used for services: change a configuration file, then notify a handler to restart or reload the service. Handlers prevent redundant operations (e.g. multiple restarts) and ensure actions happen only when needed
-docs.ansible.com
-.
 
 Templating with Jinja2
-
 Ansible uses Jinja2 templating to make playbooks and files dynamic. Variables and facts can be inserted into strings or file templates using {{ ... }} syntax. For example, you might have a nginx.conf.j2 template with server_name {{ inventory_hostname }}; so each host gets its own name. You apply a template with the template: module, which processes the Jinja2 file on the control node and sends the rendered text to the target. Templating supports expressions, filters and loops, and can be used anywhere in playbooks (task names, variables, etc.)
-docs.ansible.com
 . Because Ansible does all templating before execution, target machines don’t need Jinja2 installed.
 
 Hands-On Practice Scenarios
-
 Multi-tier application deployment: Build a playbook that deploys a complete web application stack across servers. For example, use one play on all webservers and another on database servers. You can use roles (e.g. web and db) with shared variables and templates. The Ansible docs even include a full “LAMP+HAProxy” example with roles, templates, and a zero-downtime rolling upgrade
-docs.ansible.com
 . Practicing this shows how to coordinate multiple groups and apply templates/configs consistently.
 
 Configuration management across nodes: Create a scenario where you enforce system configuration on all servers. For instance, ensure every host has NTP configured, certain packages installed, and security settings applied. Because Ansible modules are idempotent, you can run the playbook repeatedly without side effects. This mirrors real-world use: “define desired state in code and apply it”, as Ansible’s config management use case recommends
-spacelift.io
 . Tasks could include copying files, setting user accounts, or ensuring service settings, using variables for environment differences.
 
 Rolling updates / orchestrated tasks: Simulate a rolling upgrade or canary deployment. For example, update one webserver at a time by using serial: 1 in the play to limit parallelism
@@ -480,20 +464,14 @@ spacelift.io
 Ansible in DevOps Pipelines
 
 Jenkins Integration: Ansible is often used in CI/CD pipelines to provision or deploy within a Jenkins job. For example, a Jenkins Pipeline can run ansible-playbook to set up test environments or push application updates. Red Hat notes that the advantage is reusing tested Ansible roles/playbooks for provisioning, while Jenkins simply orchestrates the steps
-redhat.com
 . There are Jenkins plugins and the sh step, or Ansible’s Tower (AWX) REST API, to trigger playbook runs. In practice, you’d store playbooks in version control alongside code and invoke them from Jenkins as needed.
 
 Docker and Containers: Ansible can manage Docker hosts and containers seamlessly. It has modules to install Docker (docker_package), build images (docker_image), and run or stop containers (docker_container). Using Ansible, you can ensure every Docker host has the correct Docker version and network settings, then deploy a set of containers with environment-specific parameters. Ansible’s declarative approach simplifies container lifecycle across many hosts. As one guide explains, Ansible can “install Docker, deploy containers, manage images, configure networks, and handle orchestration tasks” with YAML playbooks, without needing any agents on the targets
-spacelift.io
 . This allows integrating Docker-based deployments into the same automation framework.
 
 Kubernetes: Ansible and Kubernetes serve complementary roles. Kubernetes excels at container orchestration (deploying and scaling pods), while Ansible excels at setting up infrastructure and configurations. In practice, you might use Ansible to provision the Kubernetes cluster and configure applications via Kubernetes modules. Ansible’s kubernetes.core collection provides modules like k8s and k8s_info to create or modify K8s resources. As Red Hat notes, it’s common to use both tools together
-redhat.com
 . For example, you could write an Ansible playbook that applies Kubernetes manifests or Helm charts as part of a deployment step. (Red Hat’s Ansible Automation Platform and OpenShift illustrate this synergy in enterprise environments.) The Ansible docs explicitly provide modules/plugins for orchestrating Kubernetes resources
-docs.ansible.com
-.
 
 Cloud Providers (AWS/Azure/GCP): Ansible integrates closely with major clouds. It includes collections of modules (amazon.aws, azure.azcollection, google.cloud) to create and manage cloud resources. For instance, you can write playbooks to launch EC2 instances, configure security groups, deploy web servers in Azure VMs, or manage GCP compute instances. Coupled with dynamic inventory plugins, Ansible can automatically detect changes in cloud environments
-spacelift.io
-spacelift.io
+
 . In a DevOps pipeline, you might use Ansible to automate infrastructure as code on AWS, consistently configure all environments via the same playbooks, and tear them down after tests. This brings Ansible into the broader IaC/CICD workflow by leveraging its cloud modules for repeatable provisioning.
